@@ -374,22 +374,26 @@
 					let lines[line_num] = { 'orig': current_line, 'marker': current_line, 'mb_compensation': 0 }
 				endif
 
+				" Solve multibyte issues by matching the byte column
+				" number instead of the visual column
+				let col_num -= lines[line_num]['mb_compensation']
+
 				" Compensate for byte difference between marker
 				" character and target character
 				"
 				" This has to be done in order to match the correct
 				" column; \%c matches the byte column and not display
 				" column.
-				let target_char_len = strlen(matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.'))
+				let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.')
+				let target_char_len = strlen(target_char)
 				let target_key_len = strlen(target_key)
-
-				" Solve multibyte issues by matching the byte column
-				" number instead of the visual column
-				let col_num -= lines[line_num]['mb_compensation']
 
 				if strlen(lines[line_num]['marker']) > 0
 					" Substitute marker character if line length > 0
-					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c.', target_key, '')
+					let padding_len = max([strdisplaywidth(target_char, col_num) - strwidth(target_key), 0])
+					let padding = repeat(' ', padding_len)
+					let target_key_len += padding_len
+					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c.', target_key . padding, '')
 				else
 					" Set the line to the marker character if the line is empty
 					let lines[line_num]['marker'] = target_key
