@@ -314,7 +314,7 @@
 			let group_key = a:0 == 1 ? a:1 : ''
 
 			for [key, item] in items(a:groups)
-				let key = ( ! empty(group_key) ? group_key : key)
+				let key = ( ! empty(group_key) ? group_key.key : key)
 
 				if type(item) == 3
 					" Destination coords
@@ -384,23 +384,33 @@
 				" This has to be done in order to match the correct
 				" column; \%c matches the byte column and not display
 				" column.
-				let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.')
-				let target_char_len = strlen(target_char)
 				let target_key_len = strlen(target_key)
+				let target_key_width = strdisplaywidth(target_key, col_num)
+				let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.')
+				let i = 2
+				while target_key_width > strdisplaywidth(target_char, col_num) && i <= target_key_width
+					let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.',i))
+					let i += 1
+				endwhile
+				unlet i
+				let target_char_len = strlen(target_char)
+				let target_char_width = strdisplaywidth(target_char, col_num)
 
 				if strlen(lines[line_num]['marker']) > 0
 					" Substitute marker character if line length > 0
-					let padding_len = max([strdisplaywidth(target_char, col_num) - strwidth(target_key), 0])
+					let padding_len = max([target_char_width - target_key_width, 0])
 					let padding = repeat(' ', padding_len)
 					let target_key_len += padding_len
-					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c.', target_key . padding, '')
+					let target_key = target_key . repeat(' ', padding_len)
+					let target_char_charlen = strlen(substitute(target_char,'.','x','g'))
+					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.', target_char_charlen), target_key, '')
 				else
 					" Set the line to the marker character if the line is empty
 					let lines[line_num]['marker'] = target_key
 				endif
 
 				" Add highlighting coordinates
-				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c')
+				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c'.repeat('.', target_key_len))
 
 				" Add marker/target lenght difference for multibyte
 				" compensation
