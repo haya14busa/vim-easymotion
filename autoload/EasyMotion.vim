@@ -314,7 +314,7 @@
 			let group_key = a:0 == 1 ? a:1 : ''
 
 			for [key, item] in items(a:groups)
-				let key = ( ! empty(group_key) ? group_key : key)
+				let key = ( ! empty(group_key) ? group_key.key : key)
 
 				if type(item) == 3
 					" Destination coords
@@ -358,6 +358,7 @@
 		" Prepare marker lines {{{
 			let lines = {}
 			let hl_coords = []
+			let hl_coords_sub = []
 			let coord_key_dict = s:CreateCoordKeyDict(a:groups)
 
 			for dict_key in sort(coord_key_dict[0])
@@ -374,29 +375,46 @@
 					let lines[line_num] = { 'orig': current_line, 'marker': current_line, 'mb_compensation': 0 }
 				endif
 
+				" Solve multibyte issues by matching the byte column
+				" number instead of the visual column
+				let col_num -= lines[line_num]['mb_compensation']
+
 				" Compensate for byte difference between marker
 				" character and target character
 				"
 				" This has to be done in order to match the correct
 				" column; \%c matches the byte column and not display
 				" column.
-				let target_char_len = strlen(matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.'))
 				let target_key_len = strlen(target_key)
-
-				" Solve multibyte issues by matching the byte column
-				" number instead of the visual column
-				let col_num -= lines[line_num]['mb_compensation']
+				let target_key_width = strdisplaywidth(target_key, col_num)
+				let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.')
+				let i = 2
+				while target_key_width > strdisplaywidth(target_char, col_num) && i <= target_key_width
+					let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.',i))
+					let i += 1
+				endwhile
+				unlet i
+				let target_char_len = strlen(target_char)
+				let target_char_width = strdisplaywidth(target_char, col_num)
 
 				if strlen(lines[line_num]['marker']) > 0
 					" Substitute marker character if line length > 0
-					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c.', target_key, '')
+					let padding_len = max([target_char_width - target_key_width, 0])
+					let padding = repeat(' ', padding_len)
+					let target_key_len += padding_len
+					let target_key = target_key . repeat(' ', padding_len)
+					let target_char_charlen = strlen(substitute(target_char,'.','x','g'))
+					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.', target_char_charlen), target_key, '')
 				else
 					" Set the line to the marker character if the line is empty
 					let lines[line_num]['marker'] = target_key
 				endif
 
 				" Add highlighting coordinates
-				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c')
+				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c.')
+				if target_key_len > 1
+					call add(hl_coords_sub, '\%' . line_num . 'l\%' . (col_num + 1) . 'c' . repeat('.', target_key_len - 1))
+				endif
 
 				" Add marker/target lenght difference for multibyte
 				" compensation
@@ -407,6 +425,9 @@
 		" }}}
 		" Highlight targets {{{
 			let target_hl_id = matchadd(g:EasyMotion_hl_group_target, join(hl_coords, '\|'), 1)
+			if !empty(hl_coords_sub)
+				let target_hl_sub_id = matchadd(g:EasyMotion_hl_group_target_sub, join(hl_coords_sub, '\|'), 1)
+			endif
 		" }}}
 
 		try
@@ -427,6 +448,9 @@
 			" Un-highlight targets {{{
 				if exists('target_hl_id')
 					call matchdelete(target_hl_id)
+				endif
+				if exists('target_hl_sub_id')
+					call matchdelete(target_hl_sub_id)
 				endif
 			" }}}
 
