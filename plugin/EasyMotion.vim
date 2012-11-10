@@ -19,13 +19,20 @@
 		\ , 'do_mapping'      : 1
 		\ , 'grouping'        : 1
 		\
-		\ , 'hl_group_target' : 'EasyMotionTarget'
-		\ , 'hl_group_shade'  : 'EasyMotionShade'
+		\ , 'hl_group_target'     : 'EasyMotionTarget'
+		\ , 'hl_group_target_sub' : 'EasyMotionTargetSub'
+		\ , 'hl_group_shade'      : 'EasyMotionShade'
 		\ })
 	" }}}
 	" Default highlighting {{{
 		let s:target_hl_defaults = {
 		\   'gui'     : ['NONE', '#ff0000' , 'bold']
+		\ , 'cterm256': ['NONE', '196'     , 'bold']
+		\ , 'cterm'   : ['NONE', 'red'     , 'bold']
+		\ }
+
+		let s:target_sub_hl_defaults = {
+		\   'gui'     : ['NONE', '#ff7777' , 'bold']
 		\ , 'cterm256': ['NONE', '196'     , 'bold']
 		\ , 'cterm'   : ['NONE', 'red'     , 'bold']
 		\ }
@@ -37,6 +44,7 @@
 		\ }
 
 		call EasyMotion#InitHL(g:EasyMotion_hl_group_target, s:target_hl_defaults)
+		call EasyMotion#InitHL(g:EasyMotion_hl_group_target_sub, s:target_sub_hl_defaults)
 		call EasyMotion#InitHL(g:EasyMotion_hl_group_shade,  s:shade_hl_defaults)
 
 		" Reset highlighting after loading a new color scheme {{{
@@ -44,6 +52,7 @@
 				autocmd!
 
 				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_group_target, s:target_hl_defaults)
+				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_group_target_sub, s:target_sub_hl_defaults)
 				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_group_shade,  s:shade_hl_defaults)
 			augroup end
 		" }}}

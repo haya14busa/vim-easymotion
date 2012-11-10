@@ -358,6 +358,7 @@
 		" Prepare marker lines {{{
 			let lines = {}
 			let hl_coords = []
+			let hl_coords_sub = []
 			let coord_key_dict = s:CreateCoordKeyDict(a:groups)
 
 			for dict_key in sort(coord_key_dict[0])
@@ -410,7 +411,10 @@
 				endif
 
 				" Add highlighting coordinates
-				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c'.repeat('.', target_key_len))
+				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c.')
+				if target_key_len > 1
+					call add(hl_coords_sub, '\%' . line_num . 'l\%' . (col_num + 1) . 'c' . repeat('.', target_key_len - 1))
+				endif
 
 				" Add marker/target lenght difference for multibyte
 				" compensation
@@ -421,6 +425,9 @@
 		" }}}
 		" Highlight targets {{{
 			let target_hl_id = matchadd(g:EasyMotion_hl_group_target, join(hl_coords, '\|'), 1)
+			if !empty(hl_coords_sub)
+				let target_hl_sub_id = matchadd(g:EasyMotion_hl_group_target_sub, join(hl_coords_sub, '\|'), 1)
+			endif
 		" }}}
 
 		try
@@ -441,6 +448,9 @@
 			" Un-highlight targets {{{
 				if exists('target_hl_id')
 					call matchdelete(target_hl_id)
+				endif
+				if exists('target_hl_sub_id')
+					call matchdelete(target_hl_sub_id)
 				endif
 			" }}}
 
