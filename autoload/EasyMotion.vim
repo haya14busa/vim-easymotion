@@ -118,7 +118,7 @@
 			let s:var_reset = {}
 		endif
 
-		let buf = bufname("")
+		let buf = ""
 
 		if a:0 == 0 && has_key(s:var_reset, a:var)
 			" Reset var to original value
