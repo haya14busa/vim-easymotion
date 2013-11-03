@@ -25,10 +25,9 @@
 		\ , 'skipfoldedline'        : 1
 		\ , 'use_migemo'            : 0
 		\
-		\ , 'hl_group_target'         : 'EasyMotionTarget'
-		\ , 'hl2_first_group_target'  : 'EasyMotionTarget2First'
-		\ , 'hl2_second_group_target' : 'EasyMotionTarget2Second'
-		\ , 'hl_group_shade'          : 'EasyMotionShade'
+		\ , 'hl_group_target'     : 'EasyMotionTarget'
+		\ , 'hl_group_target_sub' : 'EasyMotionTargetSub'
+		\ , 'hl_group_shade'      : 'EasyMotionShade'
 		\ , 'hl_line_group_shade'     : 'EasyMotionShadeLine'
 		\ })
 	" }}}
@@ -39,16 +38,10 @@
 		\ , 'cterm'   : ['NONE', 'red'     , 'bold']
 		\ }
 
-		let s:target_hl2_first_defaults = {
-		\   'gui'     : ['NONE', '#ffb400' , 'bold']
-		\ , 'cterm256': ['NONE', '11'      , 'bold']
-		\ , 'cterm'   : ['NONE', '11'      , 'bold']
-		\ }
-
-		let s:target_hl2_second_defaults = {
-		\   'gui'     : ['NONE', '#b98300' , 'bold']
-		\ , 'cterm256': ['NONE', '3'       , 'bold']
-		\ , 'cterm'   : ['NONE', '3'       , 'bold']
+		let s:target_sub_hl_defaults = {
+		\   'gui'     : ['NONE', '#ff7777' , 'bold']
+		\ , 'cterm256': ['NONE', '196'     , 'bold']
+		\ , 'cterm'   : ['NONE', 'red'     , 'bold']
 		\ }
 
 		let s:shade_hl_defaults = {
@@ -64,8 +57,7 @@
 		\ }
 
 		call EasyMotion#InitHL(g:EasyMotion_hl_group_target, s:target_hl_defaults)
-		call EasyMotion#InitHL(g:EasyMotion_hl2_first_group_target, s:target_hl2_first_defaults)
-		call EasyMotion#InitHL(g:EasyMotion_hl2_second_group_target, s:target_hl2_second_defaults)
+		call EasyMotion#InitHL(g:EasyMotion_hl_group_target_sub, s:target_sub_hl_defaults)
 		call EasyMotion#InitHL(g:EasyMotion_hl_group_shade,  s:shade_hl_defaults)
 		call EasyMotion#InitHL(g:EasyMotion_hl_line_group_shade,  s:shade_hl_line_defaults)
 
@@ -74,8 +66,7 @@
 				autocmd!
 
 				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_group_target, s:target_hl_defaults)
-				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl2_first_group_target, s:target_hl2_first_defaults)
-				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl2_second_group_target, s:target_hl2_second_defaults)
+				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_group_target_sub, s:target_sub_hl_defaults)
 				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_group_shade,  s:shade_hl_defaults)
 				autocmd ColorScheme * call EasyMotion#InitHL(g:EasyMotion_hl_line_group_shade,  s:shade_hl_line_defaults)
 			augroup end

@@ -86,6 +86,10 @@
 	function! EasyMotion#F(visualmode, direction) " {{{
 		let char = s:GetSearchChar(a:visualmode)
 
+		if empty(char)
+			return
+		endif
+
 		let re = escape(char, '.$^~')
 
 		if g:EasyMotion_use_migemo
@@ -95,10 +99,6 @@
 			if re =~# '^\a$'
 				let re = s:migemo_dicts[&l:encoding][re]
 			endif
-		endif
-
-		if empty(char)
-			return
 		endif
 
 		if g:EasyMotion_smartcase && char =~# '\v\U'
@@ -529,8 +529,7 @@ endfunction "}}}
 			let group_key = a:0 == 1 ? a:1 : ''
 
 			for [key, item] in items(a:groups)
-				let key = group_key . key "( ! empty(group_key) ? group_key : key)
-				"let key = ( ! empty(group_key) ? group_key : key)
+				let key = ( ! empty(group_key) ? group_key.key : key)
 
 				if type(item) == 3
 					" Destination coords
@@ -573,137 +572,81 @@ endfunction "}}}
 			endif
 		" }}}
 		" Prepare marker lines {{{
-		let lines = {}
-		let hl_coords = []
-		let hl2_first_coords = [] " Highlight for two characters
-		let hl2_second_coords = [] " Highlight for two characters
+			let lines = {}
+			let hl_coords = []
+			let hl_coords_sub = []
+			let coord_key_dict = s:CreateCoordKeyDict(a:groups)
 
-		let coord_key_dict = s:CreateCoordKeyDict(a:groups)
+			for dict_key in sort(coord_key_dict[0])
+				let target_key = coord_key_dict[1][dict_key]
+				let [line_num, col_num] = split(dict_key, ',')
 
-		for dict_key in sort(coord_key_dict[0])
-			let target_key = coord_key_dict[1][dict_key]
-			let [line_num, col_num] = split(dict_key, ',')
+				let line_num = str2nr(line_num)
+				let col_num = str2nr(col_num)
 
-			let line_num = str2nr(line_num)
-			let col_num = str2nr(col_num)
+				" Add original line and marker line
+				if ! has_key(lines, line_num)
+					let current_line = getline(line_num)
 
-			" Add original line and marker line
-			if ! has_key(lines, line_num)
-				let current_line = getline(line_num)
-
-				let lines[line_num] = { 'orig': current_line, 'marker': current_line, 'mb_compensation': 0 }
-
-			endif
-
-			" Solve multibyte issues by matching the byte column
-			" number instead of the visual column
-			"echom lines[line_num]['mb_compensation']
-			let col_num -= lines[line_num]['mb_compensation']
-			"if col_num < 0
-			"	let col_num = 0
-			"endif
-
-			" Compensate for byte difference between marker
-			" character and target character
-			"
-			" This has to be done in order to match the correct
-			" column; \%c matches the byte column and not display
-			" column.
-			let target_char_len = strdisplaywidth(matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.'))
-			let target_key_len = strdisplaywidth(target_key)
-
-
-			let target_line_byte_len = strlen(lines[line_num]['marker'])
-
-			let target_char_byte_len = strlen(matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.'))
-
-			if a:fixed_column
-				let firstS = match(lines[line_num]['marker'], '\S')
-				if firstS >= 4
-					let leftText = strpart(lines[line_num]['marker'], 0, firstS - 3)
-				else
-					let leftText = ''
+					let lines[line_num] = { 'orig': current_line, 'marker': current_line, 'mb_compensation': 0 }
 				endif
 
-				if firstS >= 1
-					let rightText = strpart(lines[line_num]['marker'], firstS - 1)
-				elseif firstS == 0
-					let rightText = ' ' . lines[line_num]['marker']
-				else
-					let rightText = ''
-				endif
+				" Solve multibyte issues by matching the byte column
+				" number instead of the visual column
+				let col_num -= lines[line_num]['mb_compensation']
 
-				if target_key_len < 2
-					let text = ' ' . target_key
-					call add(hl_coords, '\%' . line_num . 'l\%2c')
-				else
-					let text = target_key
-					call add(hl2_first_coords, '\%' . line_num . 'l\%1c')
-					call add(hl2_second_coords, '\%' . line_num . 'l\%2c')
-				endif
-				let lines[line_num]['marker'] = text . ' ' . lines[line_num]['marker']
-			else
+				" Compensate for byte difference between marker
+				" character and target character
+				"
+				" This has to be done in order to match the correct
+				" column; \%c matches the byte column and not display
+				" column.
+				let target_key_len = strlen(target_key)
+				let target_key_width = strdisplaywidth(target_key, col_num)
+				let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.')
+				let i = 2
+				while target_key_width > strdisplaywidth(target_char, col_num) && i <= target_key_width
+					let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.',i))
+					let i += 1
+				endwhile
+				unlet i
+				let target_char_len = strlen(target_char)
+				let target_char_width = strdisplaywidth(target_char, col_num)
+
 				if strlen(lines[line_num]['marker']) > 0
-				" Substitute marker character if line length > 0
-
-					let c = 0
-					while c < target_key_len && c < 2
-						if strlen(lines[line_num]['marker']) >= col_num + c
-							" Substitute marker character if line length > 0
-							if c == 0
-								let lines[line_num]['marker'] = substitute(
-									\ lines[line_num]['marker'],
-									\ '\%' . (col_num + c) . 'c.',
-									\ strpart(target_key, c, 1) . repeat(' ', target_char_len - 1),
-									\ '')
-							else
-								let lines[line_num]['marker'] = substitute(
-									\ lines[line_num]['marker'],
-									\ '\%' . (col_num + c) . 'c.',
-									\ strpart(target_key, c, 1),
-									\ '')
-							endif
-						else
-							let lines[line_num]['marker'] = lines[line_num]['marker'] . strpart(target_key, c, 1)
-						endif
-						let c += 1
-					endwhile
+					" Substitute marker character if line length > 0
+					let padding_len = max([target_char_width - target_key_width, 0])
+					let padding = repeat(' ', padding_len)
+					let target_key_len += padding_len
+					let target_key = target_key . repeat(' ', padding_len)
+					let target_char_charlen = strlen(substitute(target_char,'.','x','g'))
+					let lines[line_num]['marker'] = substitute(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.', target_char_charlen), target_key, '')
 				else
 				" Set the line to the marker character if the line is empty
 					let lines[line_num]['marker'] = target_key
 				endif
-			endif
 
-			" Add highlighting coordinates
-
-			if !a:fixed_column
-				if target_key_len == 1
-					call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c')
-				else
-					call add(hl2_first_coords, '\%' . line_num . 'l\%' . (col_num) . 'c')
-					call add(hl2_second_coords, '\%' . line_num . 'l\%' . (col_num + 1) . 'c')
+				" Add highlighting coordinates
+				call add(hl_coords, '\%' . line_num . 'l\%' . col_num . 'c.')
+				if target_key_len > 1
+					call add(hl_coords_sub, '\%' . line_num . 'l\%' . (col_num + 1) . 'c' . repeat('.', target_key_len - 1))
 				endif
-			endif
 
-			" Add marker/target lenght difference for multibyte
-			" compensation
-			let lines[line_num]['mb_compensation'] += (target_line_byte_len - strlen(lines[line_num]['marker']) )
-		endfor
+				" Add marker/target lenght difference for multibyte
+				" compensation
+				let lines[line_num]['mb_compensation'] += (target_char_len - target_key_len)
+			endfor
+
 
 		let lines_items = items(lines)
 		" }}}
 		" Highlight targets {{{
-			if len(hl_coords) > 0
-				let target_hl_id = matchadd(g:EasyMotion_hl_group_target, join(hl_coords, '\|'), 1)
+			let target_hl_id = matchadd(g:EasyMotion_hl_group_target, join(hl_coords, '\|'), 1)
+			if !empty(hl_coords_sub)
+				let target_hl_sub_id = matchadd(g:EasyMotion_hl_group_target_sub, join(hl_coords_sub, '\|'), 1)
 			endif
-			if len(hl2_second_coords) > 0
-				let target_hl2_second_id = matchadd(g:EasyMotion_hl2_second_group_target, join(hl2_second_coords, '\|'), 1)
-			endif
-			if len(hl2_first_coords) > 0
-				let target_hl2_first_id = matchadd(g:EasyMotion_hl2_first_group_target, join(hl2_first_coords, '\|'), 1)
-			endif
-
 		" }}}
+
 		try
 			" Set lines with markers
 			call s:SetLines(lines_items, 'marker')
@@ -723,11 +666,8 @@ endfunction "}}}
 				if exists('target_hl_id')
 					call matchdelete(target_hl_id)
 				endif
-				if exists('target_hl2_first_id')
-					call matchdelete(target_hl2_first_id)
-				endif
-				if exists('target_hl2_second_id')
-					call matchdelete(target_hl2_second_id)
+				if exists('target_hl_sub_id')
+					call matchdelete(target_hl_sub_id)
 				endif
 			" }}}
 
