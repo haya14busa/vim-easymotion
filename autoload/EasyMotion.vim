@@ -602,16 +602,16 @@ endfunction "}}}
 				" column; \%c matches the byte column and not display
 				" column.
 				let target_key_len = strlen(target_key)
-				let target_key_width = strdisplaywidth(target_key, col_num)
+				let target_key_width = strdisplaywidth(target_key)
 				let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c.')
 				let i = 2
-				while target_key_width > strdisplaywidth(target_char, col_num) && i <= target_key_width
+				while target_key_width > strdisplaywidth(target_char) && i <= target_key_width
 					let target_char = matchstr(lines[line_num]['marker'], '\%' . col_num . 'c'.repeat('.',i))
 					let i += 1
 				endwhile
 				unlet i
 				let target_char_len = strlen(target_char)
-				let target_char_width = strdisplaywidth(target_char, col_num)
+				let target_char_width = strdisplaywidth(target_char)
 
 				if strlen(lines[line_num]['marker']) > 0
 					" Substitute marker character if line length > 0
