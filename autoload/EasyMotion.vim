@@ -199,14 +199,14 @@
 	function! EasyMotion#SelectLines() "{{{
 		let orig_pos = [line('.'), col('.')]
 
-		call s:EasyMotion('^\(\w\|\s*\zs\|$\)', 2, '', '', 0, 0, 1)
+		call s:EasyMotion('^\ze\(\w\|\s*\|$\)', 2, '', '', 0, 0, 1)
 		if g:EasyMotion_cancelled
 			keepjumps call cursor(orig_pos[0], orig_pos[1])
 			return ''
 		else
 			let pos1 = [line('.'), col('.')]
 			keepjumps call cursor(orig_pos[0], orig_pos[1])
-			call s:EasyMotion('^\(\w\|\s*\zs\|$\)', 2, '', '', pos1[0], 1, 1)
+			call s:EasyMotion('^\ze\(\w\|\s*\|$\)', 2, '', '', 0, 0, 1)
 			if g:EasyMotion_cancelled
 				keepjumps call cursor(orig_pos[0], orig_pos[1])
 				return ''
