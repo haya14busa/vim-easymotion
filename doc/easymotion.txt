@@ -451,10 +451,11 @@ Author: haya14busa <hayabusa1419@gmail.com>
 Source repository: https://github.com/haya14busa/vim-easymotion
 
 Ref:
-- supasorn : two key combos and special function
-- mtth     : startofline(keep column)
-- bootleq  : fixed bufname bug
-- mattn    : fix multibyte handling
+- supasorn  : two key combos and special function
+- mtth      : startofline(keep column)
+- bootleq   : fixed bufname bug
+- mattn     : fix multibyte handling
+- todesking : better two key combos function and deal with multibyte handling
 
 Migemo:
 
