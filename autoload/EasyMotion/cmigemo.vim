@@ -91,16 +91,47 @@ function! EasyMotion#cmigemo#getMigemoPattern(input) "{{{
         let s:migemodict = s:SearchDict()
     endif
 
+    if !exists('s:init_flag')
+        call s:init()
+        let s:init_flag = 1
+    endif
+
     if has('migemo')
         " Use migemo().
         return migemo(a:input)
     elseif executable('cmigemo')
         " Use cmigemo.
-        return EasyMotion#cmigemo#system('cmigemo -v -w "'.a:input.'" -d "'.s:migemodict.'"')
+        if !s:P.is_available()
+            return EasyMotion#cmigemo#system('cmigemo -v -w "'.a:input.'" -d "'.s:migemodict.'"')
+        endif
+        let t = s:P.touch('easymotion', 'cmigemo -v -d ' . s:migemodict)
+        if t ==# 'new'
+            " wait for longer time to make sure cmigemo runs, since cmigemo is
+            " really slow to be ready.
+            call s:P.read_wait('easymotion', 2.0, ['PATTERN: '])
+        endif
+        return substitute(matchstr(s:f(a:input),
+                \ 'PATTERN:\s\zs.*\ze',),
+                \ '.$', '', '')
     else
         " Not supported
         return input
     endif
+endfunction "}}}
+
+function! s:init() "{{{
+    let s:V = vital#of('vital')
+    let s:P = s:V.import('ProcessManager')
+endfunction "}}}
+
+function! s:f(msg) "{{{
+    if !s:P.is_available()
+        return 'vimproc is required'
+    endif
+    call s:P.writeln('easymotion', a:msg)
+    let [out, err, type] = s:P.read('easymotion', ['PATTERN: '])
+
+    return out
 endfunction "}}}
 
 " Restore 'cpoptions' {{{
