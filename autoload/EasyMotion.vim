@@ -54,6 +54,7 @@ function! EasyMotion#init()
 endfunction "}}}
 " Reset: {{{
 function! EasyMotion#reset()
+    let s:EasyMotion_keys = ''
     let s:flag = {
         \ 'within_line' : 0,
         \ 'dot_repeat' : 0,
@@ -105,7 +106,7 @@ endfunction "}}}
 " Note: {{{
 " num_strokes:
 "   The number of input characters. Currently provide 1, 2, or -1.
-"   '-1' means no limit.
+"   '-1' means no limit, 'n' key motion.
 " visualmode:
 "   Vim script couldn't detect the function is called in visual mode by
 "   mode(1), so tell whether it is in visual mode by argument explicitly
@@ -114,6 +115,11 @@ endfunction "}}}
 "   1 -> backward
 "   2 -> bi-direction (handle forward & backward at the same time) }}}
 function! EasyMotion#S(num_strokes, visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['S'],
+                \ a:num_strokes . a:direction . s:flag.within_line , '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     if a:direction == 1
         let is_inclusive = 0
     else
@@ -128,6 +134,11 @@ function! EasyMotion#S(num_strokes, visualmode, direction) " {{{
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#T(num_strokes, visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['T'],
+                \ a:num_strokes . a:direction . s:flag.within_line , '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     if a:direction == 1
         let is_inclusive = 0
     else
@@ -150,23 +161,43 @@ function! EasyMotion#T(num_strokes, visualmode, direction) " {{{
 endfunction " }}}
 " -- Word Motion -------------------------
 function! EasyMotion#WB(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['WB'],
+                \ a:direction . s:flag.within_line , '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     "FIXME: inconsistent with default vim motion
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     call s:EasyMotion('\(\<.\|^$\)', a:direction, a:visualmode ? visualmode() : '', 0)
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#WBW(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['WBW'],
+                \ a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     call s:EasyMotion('\(\(^\|\s\)\@<=\S\|^$\)', a:direction, a:visualmode ? visualmode() : '', 0)
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#E(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['E'],
+                \ a:direction . s:flag.within_line , '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     let is_inclusive = mode(1) ==# 'no' ? 1 : 0
     call s:EasyMotion('\(.\>\|^$\)', a:direction, a:visualmode ? visualmode() : '', is_inclusive)
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#EW(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['EW'],
+                \ a:direction . s:flag.within_line , '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     let is_inclusive = mode(1) ==# 'no' ? 1 : 0
     call s:EasyMotion('\(\S\(\s\|$\)\|^$\)', a:direction, a:visualmode ? visualmode() : '', is_inclusive)
@@ -174,6 +205,10 @@ function! EasyMotion#EW(visualmode, direction) " {{{
 endfunction " }}}
 " -- JK Motion ---------------------------
 function! EasyMotion#JK(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['JK'], a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     "FIXME: support exclusive
     if g:EasyMotion_startofline
@@ -185,23 +220,39 @@ function! EasyMotion#JK(visualmode, direction) " {{{
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#Sol(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['Sol'], a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     call s:EasyMotion('^\(\w\|\s*\zs\|$\)', a:direction, a:visualmode ? visualmode() : '', '')
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#Eol(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['Eol'], a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     call s:EasyMotion('\(\w\|\s*\zs\|.\|^\)$', a:direction, a:visualmode ? visualmode() : '', '')
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 " -- Search Motion -----------------------
 function! EasyMotion#Search(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['Search'], a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     call s:EasyMotion(@/, a:direction, a:visualmode ? visualmode() : '', 0)
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 " -- JumpToAnywhere Motion ---------------
 function! EasyMotion#JumpToAnywhere(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['JumpToAnywhere'], a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     call s:EasyMotion( g:EasyMotion_re_anywhere, a:direction, a:visualmode ? visualmode() : '', 0)
     return s:EasyMotion_is_cancelled
@@ -228,6 +279,10 @@ function! EasyMotion#EL(visualmode, direction) " {{{
     return s:EasyMotion_is_cancelled
 endfunction " }}}
 function! EasyMotion#LineAnywhere(visualmode, direction) " {{{
+    " Get custom EasyMotion_keys {{{
+    let key = get(s:custom_keys['LineAnywhere'], a:direction, '')
+    let s:EasyMotion_keys = get(g:, s:TEMPKEYS . key, g:EasyMotion_keys)
+    "}}}
     let s:flag.within_line = 1
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
     let re = g:EasyMotion_re_line_anywhere
@@ -392,6 +447,7 @@ function! EasyMotion#Repeat(visualmode) " {{{
     let s:flag.within_line = s:previous.line_flag
     let s:flag.bd_t = s:previous.bd_t_flag
     let s:current.is_operator = mode(1) ==# 'no' ? 1: 0
+    let s:EasyMotion_keys = s:previous.keys
     " FIXME: is_inclusive value is inappropriate but handling this value is
     " difficult and priorities is low because this motion maybe used usually
     " as a 'normal' motion.
@@ -413,6 +469,7 @@ function! EasyMotion#DotRepeat(visualmode) " {{{
     let is_inclusive = s:dot_repeat.is_inclusive
     let s:flag.within_line = s:dot_repeat.line_flag
     let s:flag.bd_t = s:dot_repeat.bd_t_flag
+    let s:EasyMotion_keys = s:dot_repeat.keys
 
     let s:current.is_operator = 1
     for cnt in range(v:count1)
@@ -754,6 +811,81 @@ function! s:GetVisualStartPosition(c_pos, v_start, v_end, search_direction) "{{{
         "}}}
     endif
 endfunction "}}}
+" -- Custome Keys ------------------------
+let s:custom_keys = {}
+let s:TEMPKEYS = 'EasyMotion_keys_'
+" Find: {{{
+" funcname['num_strokes . direction . line_flag']
+let s:custom_keys.S = {
+    \ '100' : 'f' , '200' : 'f2' , '-100' : 'fn',
+    \ '110' : 'F' , '210' : 'F2' , '-110' : 'Fn',
+    \ '120' : 's' , '220' : 's2' , '-120' : 'sn',
+    \ '101' : 'fl', '201' : 'f2l', '-101' : 'fnl',
+    \ '111' : 'Fl', '211' : 'F2l', '-111' : 'Fnl',
+    \ '121' : 'sl', '221' : 's2l', '-121' : 'snl',
+    \ }
+let s:custom_keys.T = {
+    \ '100' : 't'     , '200' : 't2'     , '-100' : 'tn' ,
+    \ '110' : 'T'     , '210' : 'T2'     , '-110' : 'Tn' ,
+    \ '120' : 'bd_t'  , '220' : 'bd_t2'  , '-120' : 'bd_tn' ,
+    \ '101' : 'tl'    , '201' : 't2l'    , '-101' : 'tnl' ,
+    \ '111' : 'Tl'    , '211' : 'T2l'    , '-111' : 'Tnl' ,
+    \ '121' : 'bd_tl' , '221' : 'bd_t2l' , '-121' : 'bd_tnl' ,
+    \ }
+"}}}
+" Word: {{{
+" funcname['direction . line_flag']
+let s:custom_keys.WB = {
+    \ '00' : 'w'    , '01' : 'wl',
+    \ '10' : 'b'    , '11' : 'bl',
+    \ '20' : 'bd_w' , '21' : 'bd_wl',
+    \ }
+" funcname['direction']
+let s:custom_keys.WBW = {
+    \ '0' : 'W', '1' : 'B', '2' : 'bd_W'
+    \ }
+" funcname['direction . line_flag']
+let s:custom_keys.E = {
+    \ '00' : 'e'    , '01' : 'el'    ,
+    \ '10' : 'ge'   , '11' : 'gel'   ,
+    \ '20' : 'bd_e' , '21' : 'bd_el' ,
+    \ }
+" funcname['direction']
+let s:custom_keys.EW = {
+    \ '0' : 'E', '1' : 'gE', '2' : 'bd_E'
+    \ }
+"}}}
+" JK: {{{
+" funcname['direction']
+let s:custom_keys.JK = {
+    \ '0' : 'j', '1' : 'k', '2' : 'bd_jk'
+    \ }
+let s:custom_keys.Sol = {
+    \ '0' : 'sol-j', '1' : 'sol-k', '2' : 'sol-bd_jk'
+    \ }
+let s:custom_keys.Eol = {
+    \ '0' : 'eol-j', '1' : 'eol-k', '2' : 'eol-bd_jk'
+    \ }
+"}}}
+" Other: {{{
+" Search:
+" funcname['direction']
+let s:custom_keys.Search = {
+    \ '0' : 'n', '1' : 'N', '2' : 'bd_n'
+    \ }
+" JumpToAnywhere:
+" funcname['direction']
+let s:custom_keys.JumpToAnywhere = {
+    \ '0' : 'anywhereforward',
+    \ '1' : 'anywherebackward',
+    \ '2' : 'jumptoanywhere',
+    \ }
+let s:custom_keys.LineAnywhere = {
+    \ '0' : 'lineforward',
+    \ '1' : 'linebackward',
+    \ '2' : 'lineanywhere',
+    \ }
+"}}}
 " -- Others ------------------------------
 function! s:is_folded(line) "{{{
     " Return false if g:EasyMotion_skipfoldedline == 1
@@ -975,7 +1107,7 @@ function! s:PromptUser(groups, allows_repeat, fixed_column) "{{{
     if len(group_values) == 1
         if mode(1) ==# 'no'
             " Consider jump to first match
-            let s:dot_repeat['target'] = g:EasyMotion_keys[0]
+            let s:dot_repeat['target'] = s:EasyMotion_keys[0]
         endif
         redraw
         return group_values[0]
@@ -1132,13 +1264,13 @@ function! s:PromptUser(groups, allows_repeat, fixed_column) "{{{
         "}}}
 
         " Convert uppercase {{{
-        if g:EasyMotion_use_upper == 1 && match(g:EasyMotion_keys, '\l') == -1
+        if g:EasyMotion_use_upper == 1 && match(s:EasyMotion_keys, '\l') == -1
             let char = toupper(char)
         endif "}}}
 
         " Jump first target when Enter key is pressed "{{{
         if char ==# '' && g:EasyMotion_enter_jump_first == 1
-            let char = g:EasyMotion_keys[0]
+            let char = s:EasyMotion_keys[0]
         endif "}}}
 
         " For dot repeat {{{
@@ -1243,6 +1375,11 @@ function! s:EasyMotion(regexp, direction, visualmode, is_inclusive, ...) " {{{
     let hlchar = a:0 >= 4 ? a:4 : 0
     "}}}
 
+    " Confirm
+    " TODO: remove
+    let s:EasyMotion_keys = s:EasyMotion_keys == '' ?
+        \ g:EasyMotion_keys : s:EasyMotion_keys
+
     " Store s:current original_position & cursor_position {{{
     " current cursor pos.
     let s:current.cursor_position = [line('.'), col('.')]
@@ -1272,6 +1409,8 @@ function! s:EasyMotion(regexp, direction, visualmode, is_inclusive, ...) " {{{
         " For special motion flag
         let s:previous['line_flag'] = s:flag.within_line
         let s:previous['bd_t_flag'] = s:flag.bd_t " bi-directional t motion
+
+        let s:previous['keys'] = s:EasyMotion_keys
     endif "}}}
 
     " To avoid side effect of overwriting buffer for tpope/repeat
@@ -1415,7 +1554,7 @@ function! s:EasyMotion(regexp, direction, visualmode, is_inclusive, ...) " {{{
 
         " Attach specific key as marker to gathered matched coordinates
         let GroupingFn = function('s:GroupingAlgorithm' . s:grouping_algorithms[g:EasyMotion_grouping])
-        let groups = GroupingFn(targets, split(g:EasyMotion_keys, '\zs'))
+        let groups = GroupingFn(targets, split(s:EasyMotion_keys, '\zs'))
 
         " -- Shade inactive source --------------- {{{
         if g:EasyMotion_do_shade && targets_len != 1 && s:flag.dot_repeat != 1
@@ -1581,6 +1720,7 @@ function! s:EasyMotion(regexp, direction, visualmode, is_inclusive, ...) " {{{
             let s:dot_repeat.operator = v:operator
             let s:dot_repeat.bd_t_flag = s:flag.bd_t " Bidirectional t motion
             let s:dot_repeat.true_direction = true_direction " Check inclusive
+            let s:dot_repeat.keys = deepcopy(s:EasyMotion_keys)
             "}}}
             silent! call repeat#set("\<Plug>(easymotion-dotrepeat)")
         endif "}}}
