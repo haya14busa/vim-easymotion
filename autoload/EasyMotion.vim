@@ -1,7 +1,7 @@
 " EasyMotion - Vim motions on speed!
 "
 " Author: haya14busa <hayabusa1419@gmail.com>
-" Last Change: 02 Feb 2014.
+" Last Change: 12 Feb 2014.
 " Source: https://github.com/haya14busa/vim-easymotion
 "
 " Original Author: Kim Silkebækken <kim.silkebaekken+vim@gmail.com>
@@ -12,6 +12,15 @@ scriptencoding utf-8
 let s:save_cpo = &cpo
 set cpo&vim
 " }}}
+
+echohl ErrorMsg
+echomsg 'ALERT!!'
+echomsg 'haya14busa/vim-easymotion is deprecated.'
+echomsg 'Please move back to Lokaltog/vim-easymotion because'
+echomsg 'haya14busa became collabolator on Lokaltog/vim-easymotion'
+echomsg '    https://github.com/Lokaltog/vim-easymotion'
+echohl None
+
 " Init: {{{
 function! EasyMotion#init()
     " Store previous motion info
