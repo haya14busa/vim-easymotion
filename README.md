@@ -2,7 +2,7 @@ Vim motion on speed! [![Build Status](https://travis-ci.org/haya14busa/vim-easym
 -----
 
 
-DEPRECATED WARNING
+DEPRECATION WARNING
 -----
 This repository is **DEPRECATED** because I became collaborator on the main Lokaltog/vim-easymotion repository(https://github.com/Lokaltog/vim-easymotion) and took over the project.
 
